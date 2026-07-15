@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { AnimatePresence, motion, useAnimation } from "framer-motion";
 import { createPortal } from "react-dom";
 import Sparkle from "./icons/Sparkle";
 import InvitationFrame from "./icons/InvitationFrame";
 import YesNoButtons from "./YesNoButtons";
 import Celebration from "./Celebration";
-import { playHeartbeatThump, playSparkleChime } from "@/lib/sound";
+import { getFailAudio, playHeartbeatThump, playSparkleChime, unlockAudio } from "@/lib/sound";
 import { useSiteConfig } from "@/components/SiteConfigContext";
 
 const PREMIUM_EASE = [0.16, 1, 0.3, 1] as const;
@@ -25,10 +25,15 @@ function sleep(ms: number) {
 export default function OpenInvitation({
   className = "",
   onNoReset,
+  onSongStop,
 }: {
   className?: string;
   // Closes the envelope back up, called once the NO-flow fold-back finishes.
   onNoReset?: () => Promise<void>;
+  // Stops the background song, resolving once it's actually silent — the
+  // reload below is gated on this so the page can't restart while the song
+  // is still audibly playing.
+  onSongStop?: () => Promise<void>;
 }) {
   const config = useSiteConfig();
   const [stage, setStage] = useState<Stage>("asking");
@@ -48,17 +53,10 @@ export default function OpenInvitation({
   const [noMessageVisible, setNoMessageVisible] = useState(false);
   const [folding, setFolding] = useState(false);
   const foldControls = useAnimation();
-  const failAudioRef = useRef<HTMLAudioElement | null>(null);
-
-  useEffect(() => {
-    const audio = new Audio("/sounds/fail.mp4");
-    audio.preload = "auto";
-    failAudioRef.current = audio;
-  }, []);
 
   function playFailSound(): Promise<void> {
     return new Promise((resolve) => {
-      const audio = failAudioRef.current;
+      const audio = getFailAudio();
       if (!audio) {
         resolve();
         return;
@@ -77,8 +75,15 @@ export default function OpenInvitation({
   }
 
   async function handleNoCaught() {
+    // Defensive: this runs synchronously off the NO button's own click (see
+    // YesNoButtons' handleNoClick), so it's still a valid place for iOS to
+    // count as a user gesture if the Begin-button unlock somehow never fired.
+    unlockAudio();
     setFrozen(true);
     setNoMessageVisible(true);
+    // Starts fading the song out immediately — it's awaited later, right
+    // before the reload, not here, so it doesn't hold up the fail sound.
+    const songStopped = onSongStop ? onSongStop() : Promise.resolve();
 
     await sleep(300);
     await playFailSound();
@@ -100,12 +105,18 @@ export default function OpenInvitation({
 
     if (onNoReset) await onNoReset();
 
+    // The page must not restart while the song is still playing.
+    await songStopped;
+
     await sleep(2000);
     window.location.reload();
   }
 
   async function handleYes() {
     if (locked) return;
+    // Defensive: same reasoning as handleNoCaught above — this runs
+    // synchronously off the YES button's click.
+    unlockAudio();
     setLocked(true);
     setScrimActive(true);
 

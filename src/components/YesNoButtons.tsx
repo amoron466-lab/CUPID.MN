@@ -115,6 +115,17 @@ export default function YesNoButtons({
   // continuous approach instead of one per real attempt, which makes the
   // "give up and go home" case fire long before the 7th click.
   const primed = useRef(true);
+  // Flips the instant the first dodge starts (synchronously, alongside
+  // dodging.current) and never resets. The sync loop below only checks
+  // `attempt > 0` once, when its effect is set up — its recursive rAF loop
+  // keeps running every frame afterward based solely on `dodging.current`.
+  // When a dodge finishes, dodging.current clears to false *before* React
+  // commits the re-render that would cancel that stale loop, so for a frame
+  // or two the old loop would otherwise see dodging.current === false and
+  // snap the button straight back to the placeholder's original position.
+  // Checking this ref inside sync()'s per-frame body (not just at effect
+  // setup) closes that gap regardless of React's render timing.
+  const everDodgedRef = useRef(false);
   const hasEnteredRef = useRef(false);
   const exhausted = attempt >= TOTAL_ESCAPES;
 
@@ -132,7 +143,7 @@ export default function YesNoButtons({
     let frame: number;
 
     function sync() {
-      if (placeholderRef.current && !dodging.current) {
+      if (placeholderRef.current && !dodging.current && !everDodgedRef.current) {
         const r = placeholderRef.current.getBoundingClientRect();
         const rect = { left: r.left, top: r.top, width: r.width, height: r.height };
         baseRef.current = rect;
@@ -232,6 +243,7 @@ export default function YesNoButtons({
       if (!primed.current) return;
       primed.current = false;
       dodging.current = true;
+      everDodgedRef.current = true;
       void runEscape(attempt).then(() => {
         dodging.current = false;
         setAttempt((a) => a + 1);
@@ -259,6 +271,7 @@ export default function YesNoButtons({
     e.preventDefault();
     primed.current = false;
     dodging.current = true;
+    everDodgedRef.current = true;
     void runEscape(attempt).then(() => {
       dodging.current = false;
       setAttempt((a) => a + 1);

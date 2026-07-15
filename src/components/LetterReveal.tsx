@@ -44,6 +44,7 @@ export default function LetterReveal({
   active,
   portalTarget,
   onNoReset,
+  onSongStop,
 }: {
   active: boolean;
   // Element to mount the opened invitation into. It must NOT be a descendant
@@ -54,6 +55,9 @@ export default function LetterReveal({
   // Closes the envelope flap back up — invoked once the NO-flow fold-back
   // finishes, right before the whole page reloads.
   onNoReset?: () => Promise<void>;
+  // Stops the background song, resolving once it's actually silent — the
+  // NO flow awaits this before reloading the page.
+  onSongStop?: () => Promise<void>;
 }) {
   const [stage, setStage] = useState<Stage>("hidden");
 
@@ -259,7 +263,11 @@ export default function LetterReveal({
                   rotate: { type: "spring", stiffness: 44, damping: 12, mass: 1, delay: 0.05 },
                 }}
               >
-                <OpenInvitation className="h-full w-full" onNoReset={onNoReset} />
+                <OpenInvitation
+                  className="h-full w-full"
+                  onNoReset={onNoReset}
+                  onSongStop={onSongStop}
+                />
               </motion.div>
             )}
           </AnimatePresence>,

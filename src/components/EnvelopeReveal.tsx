@@ -59,7 +59,13 @@ const burst = Array.from({ length: BURST_COUNT }, (_, i) => {
   };
 });
 
-export default function EnvelopeReveal() {
+export default function EnvelopeReveal({
+  onSongStop,
+}: {
+  // Stops the background song, resolving once it's actually silent — the
+  // NO flow awaits this before reloading the page.
+  onSongStop?: () => Promise<void>;
+}) {
   const [stage, setStage] = useState<Stage>("entering");
 
   const envelope = useAnimation();
@@ -371,6 +377,7 @@ export default function EnvelopeReveal() {
           active={stage === "opened"}
           portalTarget={stageEl}
           onNoReset={closeEnvelope}
+          onSongStop={onSongStop}
         />
 
         <EnvelopeBody className="relative w-full" />
