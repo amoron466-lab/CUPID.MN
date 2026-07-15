@@ -1,26 +1,311 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-wine-950: #0b0103;
+  --color-wine-900: #120204;
+  --color-wine-850: #190306;
+  --color-wine-800: #26060c;
+  --color-wine-700: #330810;
+  --color-wine-600: #4a0f1a;
+  --color-blush-200: #f4e8e4;
+  --color-blush-300: #e9c9c2;
+  --color-rose-400: #d98a86;
+  --color-gold-300: #e3bd8f;
+  --color-ivory: #fff6f1;
+
+  /* invitation-card palette — soft, unsaturated vintage-luxury tones */
+  --color-invite-burgundy: #6b1a26;
+  --color-invite-wine: #7a1f2c;
+  --color-invite-rose: #c98a92;
+  --color-invite-pink: #e6c3c8;
+  --color-invite-sage: #93a481;
+  --color-invite-gold: #c8a165;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-classic: var(--font-classic);
+  --font-script: var(--font-script);
+  --color-wine-950: var(--color-wine-950);
+  --color-wine-900: var(--color-wine-900);
+  --color-wine-850: var(--color-wine-850);
+  --color-wine-800: var(--color-wine-800);
+  --color-wine-700: var(--color-wine-700);
+  --color-wine-600: var(--color-wine-600);
+  --color-blush-200: var(--color-blush-200);
+  --color-blush-300: var(--color-blush-300);
+  --color-rose-400: var(--color-rose-400);
+  --color-gold-300: var(--color-gold-300);
+  --color-ivory: var(--color-ivory);
+  --color-invite-burgundy: var(--color-invite-burgundy);
+  --color-invite-wine: var(--color-invite-wine);
+  --color-invite-rose: var(--color-invite-rose);
+  --color-invite-pink: var(--color-invite-pink);
+  --color-invite-sage: var(--color-invite-sage);
+  --color-invite-gold: var(--color-invite-gold);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --ease-premium: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+html,
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+  height: 100%;
+  height: 100dvh;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), sans-serif;
+  /* keeps content clear of the iOS notch / home indicator; resolves to 0 on
+     devices without safe-area insets, so this is a no-op everywhere else */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+::selection {
+  background: rgba(217, 138, 134, 0.3);
+  color: var(--color-ivory);
+}
+
+/* ---------- Typography ---------- */
+
+.text-shadow-glow {
+  text-shadow: 0 1px 24px rgba(217, 138, 134, 0.22), 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+.text-shadow-soft {
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.3);
+}
+
+/* ---------- Ambient background motion ---------- */
+
+@keyframes drift-a {
+  0%,
+  100% {
+    transform: translate3d(-4%, -2%, 0) scale(1);
+  }
+  38% {
+    transform: translate3d(3%, 2%, 0) scale(1.05);
+  }
+  70% {
+    transform: translate3d(4.5%, 3.5%, 0) scale(1.09);
+  }
+}
+
+@keyframes drift-b {
+  0%,
+  100% {
+    transform: translate3d(3%, 4%, 0) scale(1.05);
+  }
+  44% {
+    transform: translate3d(-3%, 0%, 0) scale(0.99);
+  }
+  75% {
+    transform: translate3d(-5.5%, -2.5%, 0) scale(0.96);
+  }
+}
+
+@keyframes drift-c {
+  0%,
+  100% {
+    transform: translate3d(0%, 0%, 0) scale(1);
+    opacity: 0.55;
+  }
+  40% {
+    transform: translate3d(-2%, 3.5%, 0) scale(1.06);
+    opacity: 0.68;
+  }
+  72% {
+    transform: translate3d(-3.5%, 5%, 0) scale(1.1);
+    opacity: 0.75;
+  }
+}
+
+.animate-drift-a {
+  animation: drift-a 34s var(--ease-soft) infinite;
+}
+
+.animate-drift-b {
+  animation: drift-b 42s var(--ease-soft) infinite;
+}
+
+.animate-drift-c {
+  animation: drift-c 27s var(--ease-soft) infinite;
+}
+
+/* ---------- Grain texture ---------- */
+
+.grain-overlay {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  mix-blend-mode: multiply;
+}
+
+/* directional, warm-tinted noise standing in for pressed paper fibers —
+   low x-frequency / high y-frequency turbulence reads as fine vertical grain */
+.paper-fiber {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.06 0.5' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.42  0 0 0 0 0.3  0 0 0 0 0.2  0 0 0 0.16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  mix-blend-mode: multiply;
+}
+
+/* ---------- Particles ---------- */
+
+@keyframes rise {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+  }
+  10% {
+    opacity: var(--particle-opacity, 0.5);
+  }
+  90% {
+    opacity: var(--particle-opacity, 0.5);
+  }
+  100% {
+    transform: translate3d(0, -120px, 0);
+    opacity: 0;
+  }
+}
+
+.animate-particle {
+  animation-name: rise;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+/* ---------- Twinkle ---------- */
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+.animate-twinkle {
+  animation: twinkle 4.5s ease-in-out infinite;
+}
+
+/* ---------- Envelope float ---------- */
+
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-14px);
+  }
+}
+
+.animate-float-y {
+  animation: float-y 7s ease-in-out infinite;
+}
+
+/* ---------- Heart drift ---------- */
+
+@keyframes heart-drift {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(2deg);
+  }
+}
+
+.animate-heart-drift {
+  animation: heart-drift 6s ease-in-out infinite;
+}
+
+/* ---------- Glow pulse ---------- */
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    filter: blur(28px);
+  }
+  50% {
+    opacity: 0.9;
+    filter: blur(34px);
+  }
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 5s ease-in-out infinite;
+}
+
+/* ---------- Cursor-reactive glow ---------- */
+
+.cursor-glow {
+  transform: translate3d(var(--glow-x, 50vw), var(--glow-y, 30vh), 0);
+  will-change: transform;
+}
+
+/* ---------- Shimmer sweep (button / glass reflection) ---------- */
+
+@keyframes shimmer-sweep {
+  0% {
+    transform: translateX(-140%) skewX(-12deg);
+  }
+  100% {
+    transform: translateX(140%) skewX(-12deg);
+  }
+}
+
+.animate-shimmer-sweep {
+  animation: shimmer-sweep 2.6s var(--ease-soft) infinite;
+}
+
+/* ---------- Seal shine ---------- */
+
+@keyframes seal-shine {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.animate-seal-shine {
+  animation: seal-shine 5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-drift-a,
+  .animate-drift-b,
+  .animate-drift-c,
+  .animate-particle,
+  .animate-twinkle,
+  .animate-float-y,
+  .animate-heart-drift,
+  .animate-glow-pulse,
+  .animate-shimmer-sweep,
+  .animate-seal-shine {
+    animation: none !important;
+  }
+
+  .cursor-glow {
+    transform: none !important;
+  }
 }
