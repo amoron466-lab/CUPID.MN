@@ -419,13 +419,13 @@ export default function OpenInvitation({
                       animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                       whileTap={{ scale: 0.96 }}
                       transition={{ duration: 0.7, ease: PREMIUM_EASE }}
-                      className="mt-[4%] self-center rounded-full font-classic font-medium uppercase"
+                      className="mt-[4%] max-w-full self-center rounded-full font-classic font-medium uppercase"
                       style={{
                         letterSpacing: "0.12em",
                         fontSize: "clamp(0.72rem, 2.3vw, 0.92rem)",
-                        padding: "clamp(0.5rem, 1.8vw, 0.75rem) clamp(1.4rem, 4.5vw, 2.2rem)",
+                        padding: "clamp(0.5rem, 1.8vw, 0.75rem) clamp(1rem, 4.5vw, 2.2rem)",
                         minHeight: "48px",
-                        minWidth: "48px",
+                        minWidth: "clamp(2.75rem, 11vw, 3rem)",
                         touchAction: "manipulation",
                         color: "#3a1608",
                         backgroundImage:
@@ -485,7 +485,12 @@ function DetailRow({ icon, label, value }: { icon: ReactNode; label: string; val
       />
       {value && (
         <span
-          className="shrink-0 whitespace-nowrap text-right font-medium"
+          // min-w-0 lets this shrink below its own text's natural width
+          // (flex items refuse to by default) and dropping whitespace-nowrap
+          // lets a long admin-entered location/date wrap instead of
+          // overflowing the card — the card itself clips overflow-x, so an
+          // un-wrappable value would silently lose its tail on narrow phones
+          className="min-w-0 shrink text-right font-medium break-words"
           style={{
             fontSize: "clamp(0.74rem, 2.2vw, 0.98rem)",
           }}

@@ -237,20 +237,25 @@ body {
 
 /* ---------- Glow pulse ---------- */
 
+/* opacity-only pulse — an earlier version also animated `filter: blur()`
+   every frame, which (unlike opacity) can't be composited and forces a
+   repaint each tick of this 5s-infinite loop. That's cheap on a desktop GPU
+   but a steady drain on mobile ones, so the blur amount is now fixed (via
+   each usage site's own blur-2xl/blur-3xl class) and only opacity animates —
+   visually the pulse still breathes, just without the extra blur travel. */
 @keyframes glow-pulse {
   0%,
   100% {
     opacity: 0.55;
-    filter: blur(28px);
   }
   50% {
     opacity: 0.9;
-    filter: blur(34px);
   }
 }
 
 .animate-glow-pulse {
   animation: glow-pulse 5s ease-in-out infinite;
+  will-change: opacity;
 }
 
 /* ---------- Cursor-reactive glow ---------- */

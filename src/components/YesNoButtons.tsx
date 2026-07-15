@@ -56,11 +56,19 @@ const BUTTON_CLASS =
 const BUTTON_STYLE = {
   letterSpacing: "0.12em",
   fontSize: "clamp(0.78rem, 2.5vw, 1rem)",
-  padding: "clamp(0.55rem, 2vw, 0.85rem) clamp(1.3rem, 4.5vw, 2.1rem)",
-  // guarantees a 48px touch target on small screens without changing the
-  // visual size anywhere the clamp() above already exceeds it
+  // horizontal padding floor lowered from 1.3rem so narrow phones (iPhone
+  // SE, etc.) aren't forced past their available width — on wider screens
+  // 4.5vw clears this floor well before the 2.1rem ceiling, so nothing
+  // changes there
+  padding: "clamp(0.55rem, 2vw, 0.85rem) clamp(0.85rem, 4.5vw, 2.1rem)",
+  // guarantees a touch target on small screens without changing the visual
+  // size anywhere the clamp() above already exceeds it. Floored at 44px
+  // (Apple/Google's own minimum) instead of a flat 48px so two buttons plus
+  // their gap can still fit inside a ~320px-wide card without overflowing —
+  // on anything wider than ~436px viewport this still resolves to 48px,
+  // identical to before.
   minHeight: "48px",
-  minWidth: "48px",
+  minWidth: "clamp(2.75rem, 11vw, 3rem)",
   touchAction: "manipulation",
 } as const;
 
@@ -96,7 +104,17 @@ export default function YesNoButtons({
   const topMV = useMotionValue(0);
   const widthMV = useMotionValue(0);
   const heightMV = useMotionValue(0);
+  // Every escape jump used to animate leftMV/topMV (real `left`/`top` style
+  // props) directly, frame by frame — each write is a layout-triggering
+  // property, so a spring driving it for its whole duration forced a reflow
+  // every animation frame (classic layout thrashing, and the main source of
+  // mobile stutter during a dodge). jumpTo() below now snaps left/top to the
+  // jump's destination in one write, and animates xMV/yMV — framer-motion's
+  // `x`/`y` map to `transform`, which is compositor-only — from the
+  // corresponding negative offset back down to 0, producing the identical
+  // visual motion without animating layout on every frame.
   const xMV = useMotionValue(0);
+  const yMV = useMotionValue(0);
   const opacityMV = useMotionValue(0);
   const scaleMV = useMotionValue(1);
 
@@ -177,13 +195,29 @@ export default function YesNoButtons({
     const from = { x: posRef.current.left, y: posRef.current.top };
     const minDim = Math.min(window.innerWidth, window.innerHeight);
 
+    // FLIP technique: snaps the button's real (layout-triggering) left/top
+    // straight to the destination in a single write, then renders it back at
+    // the start position via a `transform` offset (xMV/yMV) and animates
+    // that offset down to 0. Visually identical to animating left/top
+    // directly, but the per-frame animated properties are now transform-only
+    // (compositor, not layout) — see the xMV/yMV comment above.
+    async function moveTo(target: { left: number; top: number }, transition: object) {
+      const startLeft = posRef.current.left;
+      const startTop = posRef.current.top;
+      posRef.current = target;
+      leftMV.set(target.left);
+      topMV.set(target.top);
+      xMV.set(startLeft - target.left);
+      yMV.set(startTop - target.top);
+      await Promise.all([
+        animateValue(xMV, 0, transition),
+        animateValue(yMV, 0, transition),
+      ]);
+    }
+
     async function jumpTo(minDist: number, transition: object) {
       const target = pickTarget(from, size, minDist);
-      posRef.current = target;
-      await Promise.all([
-        animateValue(leftMV, target.left, transition),
-        animateValue(topMV, target.top, transition),
-      ]);
+      await moveTo(target, transition);
     }
 
     switch (index) {
@@ -218,11 +252,10 @@ export default function YesNoButtons({
         // home so the 7th, successful click lands right where it started
         await jumpTo(minDim * 0.14, { type: "spring", stiffness: 100, damping: 28 });
         await sleep(250);
-        posRef.current = { left: size.left, top: size.top };
-        await Promise.all([
-          animateValue(leftMV, size.left, { type: "spring", stiffness: 130, damping: 22 }),
-          animateValue(topMV, size.top, { type: "spring", stiffness: 130, damping: 22 }),
-        ]);
+        await moveTo(
+          { left: size.left, top: size.top },
+          { type: "spring", stiffness: 130, damping: 22 }
+        );
         break;
     }
   }
@@ -285,7 +318,7 @@ export default function YesNoButtons({
   }, [folding, opacityMV, scaleMV]);
 
   return (
-    <div className="relative flex w-full max-w-[88%] items-center justify-center gap-[16%]">
+    <div className="relative flex w-full max-w-[88%] items-center justify-center gap-[8%] sm:gap-[16%]">
       <motion.button
         type="button"
         disabled={locked}
@@ -335,6 +368,7 @@ export default function YesNoButtons({
               left: leftMV,
               top: topMV,
               x: xMV,
+              y: yMV,
               opacity: opacityMV,
               scale: scaleMV,
               color: "#3a1608",

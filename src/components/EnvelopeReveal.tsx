@@ -207,7 +207,16 @@ export default function EnvelopeReveal({
   return (
     <div
       ref={setStageEl}
-      className="relative flex h-[680px] max-h-[80dvh] w-full max-w-2xl items-center justify-center sm:h-[800px]"
+      // Below `sm`, height was a flat 680px capped only by 80dvh — on a
+      // narrow-but-tall phone that let the box keep nearly its full height
+      // while width shrank with the viewport, distorting it into a much
+      // taller shape than the desktop 672:680 box every percentage inside
+      // (padding, font clamp()s, the opened invitation's own top/height/width
+      // percentages) was designed against. Locking the aspect ratio there
+      // instead makes height follow width, so the card scales down uniformly
+      // like a shrunk desktop card instead of stretching. `sm:` and up keep
+      // the original fixed 680/800px behavior untouched.
+      className="relative flex w-full max-w-2xl items-center justify-center h-auto max-sm:aspect-[672/680] max-h-[80dvh] sm:h-[800px]"
     >
       {/* soft spotlight behind the envelope, drifting a touch with the tilt */}
       <motion.div

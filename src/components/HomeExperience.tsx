@@ -47,9 +47,18 @@ export default function HomeExperience({
   function playSong() {
     const audio = getSongAudio();
     if (!audio) return;
-    audio.currentTime = 0;
+    // Setting currentTime before any metadata has loaded (readyState 0,
+    // guaranteed true here since the element was just created) throws in
+    // some mobile WebKit builds — and since it's a fresh element that
+    // already starts at time 0, it's not even needed. Guarded so a throw
+    // here can never skip the play() call right below it.
+    try {
+      audio.currentTime = 0;
+    } catch {
+      // ignore — element is already at time 0
+    }
     audio.volume = 0;
-    void audio.play().catch(() => {});
+    startSongPlayback(audio);
 
     const fadeStart = performance.now();
     function fadeStep(now: number) {
@@ -60,6 +69,21 @@ export default function HomeExperience({
       if (t < 1) requestAnimationFrame(fadeStep);
     }
     requestAnimationFrame(fadeStep);
+  }
+
+  // play() can still be rejected on mobile even from inside a genuine click
+  // handler (a slow network stalling the initial buffer, a browser quirk,
+  // etc.) — with nothing watching for that, the song would then just never
+  // play for the rest of the visit. Retries once on the next tap/keypress,
+  // which is still a valid user gesture the browser will honor.
+  function startSongPlayback(audio: HTMLAudioElement) {
+    audio.play().catch(() => {
+      function retry() {
+        void audio.play().catch(() => {});
+      }
+      window.addEventListener("pointerdown", retry, { once: true });
+      window.addEventListener("keydown", retry, { once: true });
+    });
   }
 
   // Fades the song out and pauses it, resolving only once that's actually
