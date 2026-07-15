@@ -171,6 +171,9 @@ export default function LetterReveal({
             rotateX: tiltX,
             pointerEvents: "auto",
             touchAction: "manipulation",
+            willChange: "transform, filter",
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
           }}
           animate={position}
           exit={{
@@ -252,6 +255,9 @@ export default function LetterReveal({
                   // above those SVGs regardless of DOM order.
                   zIndex: 20,
                   pointerEvents: "auto",
+                  willChange: "transform, filter",
+                  backfaceVisibility: "hidden",
+                  WebkitBackfaceVisibility: "hidden",
                 }}
                 initial={{ opacity: 0, y: 84, scale: 0.3, rotate: -2, filter: "blur(26px)" }}
                 animate={{ opacity: 1, y: 0, scale: 1, rotate: 0, filter: "blur(0px)" }}

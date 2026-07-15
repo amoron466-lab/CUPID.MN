@@ -146,6 +146,21 @@ body {
 
 /* ---------- Grain texture ---------- */
 
+/* mix-blend-mode forces the browser to repaint the blended element against
+   its backdrop on every frame of an ANCESTOR's animated transform/filter
+   (the envelope-open / letter-unfold / invitation-reveal sequence animates
+   scale, rotate, y and filter:blur() simultaneously on parents of these
+   overlays) — on mobile GPU compositors that shows up as tearing/flicker.
+   isolation:isolate + a translateZ(0) promotion gives the blended overlay
+   its own compositing layer so the blend is computed once, not repainted
+   every frame the ancestor moves. */
+.grain-overlay,
+.paper-fiber {
+  isolation: isolate;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
 .grain-overlay {
   background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
   background-repeat: repeat;

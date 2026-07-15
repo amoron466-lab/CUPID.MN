@@ -84,7 +84,8 @@ export default function EnvelopeReveal({
   // The opened invitation portals here instead of into wrapRef — wrapRef is
   // capped to the envelope's own small size (aspect-[4/3] w-[62%] max-w-[460px]),
   // so anything nested inside it inherits that box. This outer div is the
-  // full h-[680px] stage, giving the invitation its own layout context.
+  // full h-[800px] (desktop) / aspect-locked (mobile) stage, giving the
+  // invitation its own layout context.
   const [stageEl, setStageEl] = useState<HTMLDivElement | null>(null);
 
   // hover tilt + lift, all spring-smoothed for a handcrafted, unhurried feel
@@ -210,13 +211,16 @@ export default function EnvelopeReveal({
       // Below `sm`, height was a flat 680px capped only by 80dvh — on a
       // narrow-but-tall phone that let the box keep nearly its full height
       // while width shrank with the viewport, distorting it into a much
-      // taller shape than the desktop 672:680 box every percentage inside
+      // taller shape than the desktop 672:800 box every percentage inside
       // (padding, font clamp()s, the opened invitation's own top/height/width
       // percentages) was designed against. Locking the aspect ratio there
       // instead makes height follow width, so the card scales down uniformly
-      // like a shrunk desktop card instead of stretching. `sm:` and up keep
-      // the original fixed 680/800px behavior untouched.
-      className="relative flex w-full max-w-2xl items-center justify-center h-auto max-sm:aspect-[672/680] max-h-[80dvh] sm:h-[800px]"
+      // like a shrunk desktop card instead of stretching. The ratio must match
+      // the desktop box's actual 672:800 proportions (not 672:680 — an earlier
+      // version of this fix used a stale pre-800px value, which left mobile
+      // ~15% shorter than a true scaled-down desktop card). `sm:` and up keep
+      // the original fixed 800px behavior untouched.
+      className="relative flex w-full max-w-2xl items-center justify-center h-auto max-sm:aspect-[672/800] max-h-[80dvh] sm:h-[800px]"
     >
       {/* soft spotlight behind the envelope, drifting a touch with the tilt */}
       <motion.div
@@ -373,6 +377,14 @@ export default function EnvelopeReveal({
           // the only clickable/hoverable thing left
           pointerEvents: stage === "opened" ? "none" : "auto",
           touchAction: "manipulation",
+          // Promotes this node to its own compositor layer up front instead
+          // of mid-gesture — without it, mobile browsers were seen to
+          // (re)promote the layer right as the flap's 3D rotateX kicked in,
+          // producing a visible pop/tear at the exact moment the two
+          // animations overlapped.
+          willChange: "transform, filter",
+          backfaceVisibility: "hidden",
+          WebkitBackfaceVisibility: "hidden",
         }}
       >
         {/* subtle glow that blooms as the cursor arrives */}
@@ -410,6 +422,8 @@ export default function EnvelopeReveal({
             transformOrigin: "50% 14.7%",
             transformStyle: "preserve-3d",
             backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
+            willChange: "transform",
           }}
         >
           <EnvelopeFlap className="w-full" />

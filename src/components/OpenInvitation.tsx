@@ -172,6 +172,11 @@ export default function OpenInvitation({
       initial={{ scale: 1, y: 0, opacity: 1, rotate: 0, filter: "blur(0px)" }}
       animate={foldControls}
       className={`relative ${className}`}
+      style={{
+        willChange: "transform, filter, opacity",
+        backfaceVisibility: "hidden",
+        WebkitBackfaceVisibility: "hidden",
+      }}
     >
       {frozen &&
         typeof document !== "undefined" &&
@@ -213,6 +218,12 @@ export default function OpenInvitation({
             "linear-gradient(165deg, #fffcf6 0%, #fdf1e0 38%, #f5e0c0 72%, #eed4ac 100%)",
           boxShadow:
             "inset 0 1px 0 rgba(255,255,255,0.85), inset 0 -22px 34px -24px rgba(122,70,48,0.24), inset 0 0 50px -12px rgba(96,44,26,0.19), inset 0 0 0 1px rgba(255,255,255,0.5), inset 0 0 0 2px rgba(120,60,30,0.1), inset 0 0 30px -6px rgba(60,24,16,0.1), 0 22px 46px -22px rgba(20,6,4,0.36), 0 10px 20px -10px rgba(20,6,4,0.2), 0 40px 80px -16px rgba(20,6,4,0.16)",
+          // Rounded corners + overflow-hidden + an animated transform on this
+          // element (the heartbeat cardPulse) is a known mobile Safari/Chrome
+          // trigger for a visible seam/tear right at the clip edge unless the
+          // element is on its own compositor layer up front.
+          transform: "translateZ(0)",
+          willChange: "transform",
         }}
       >
         {/* fine paper fiber, tinted warm and blended into the stock */}

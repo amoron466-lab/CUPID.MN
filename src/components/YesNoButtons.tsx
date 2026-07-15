@@ -68,7 +68,15 @@ const BUTTON_STYLE = {
   // on anything wider than ~436px viewport this still resolves to 48px,
   // identical to before.
   minHeight: "48px",
-  minWidth: "clamp(2.75rem, 11vw, 3rem)",
+  // Was a flat clamp(2.75rem, 11vw, 3rem) — far narrower than either
+  // label's own text. Combined with the row's min-w-0/flex-1 (which permits
+  // shrinking below content width) and this button's overflow-hidden (needed
+  // to clip the shimmer-sweep sweep), the row could squeeze a button below
+  // its text's natural width on narrow phones, silently clipping the first
+  // character. max-content makes the label's own intrinsic width the real
+  // floor, so the button can still grow via flex-1 but never shrinks past
+  // what its text needs.
+  minWidth: "max-content",
   touchAction: "manipulation",
 } as const;
 
