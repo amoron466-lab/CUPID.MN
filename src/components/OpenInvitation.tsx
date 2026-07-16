@@ -275,7 +275,7 @@ export default function OpenInvitation({
             className="font-classic font-medium uppercase text-invite-burgundy/75"
             style={{
               letterSpacing: "0.36em",
-              fontSize: "clamp(0.62rem, 2.05vw, 0.9rem)",
+              fontSize: "clamp(0.62rem, calc(2.05vw / var(--stage-scale, 1)), 0.9rem)",
               textShadow: "0 1px 0 rgba(255,255,255,0.65), 0 -0.5px 0 rgba(107,26,38,0.12)",
             }}
           >
@@ -292,7 +292,7 @@ export default function OpenInvitation({
               lets this box shrink, which shifts every button below it up */}
           <div
             className="relative mt-[6%] flex w-full items-center justify-center"
-            style={{ minHeight: "clamp(5.3rem, 20vw, 8.9rem)" }}
+            style={{ minHeight: "clamp(5.3rem, calc(20vw / var(--stage-scale, 1)), 8.9rem)" }}
           >
             <AnimatePresence mode="wait">
               {noMessageVisible ? (
@@ -303,7 +303,7 @@ export default function OpenInvitation({
                   transition={{ duration: 0.6, ease: SOFT_EASE }}
                   className="font-script"
                   style={{
-                    fontSize: "clamp(2.1rem, 7.8vw, 3.4rem)",
+                    fontSize: "clamp(2.1rem, calc(7.8vw / var(--stage-scale, 1)), 3.4rem)",
                     lineHeight: 1.16,
                     letterSpacing: "-0.01em",
                     rotate: "-1deg",
@@ -320,7 +320,7 @@ export default function OpenInvitation({
                   transition={{ duration: 0.5, ease: PREMIUM_EASE }}
                   className="font-script text-invite-wine"
                   style={{
-                    fontSize: "clamp(2.3rem, 8.6vw, 3.85rem)",
+                    fontSize: "clamp(2.3rem, calc(8.6vw / var(--stage-scale, 1)), 3.85rem)",
                     lineHeight: 1.16,
                     letterSpacing: "-0.01em",
                     rotate: "-1deg",
@@ -338,7 +338,7 @@ export default function OpenInvitation({
                   transition={{ duration: 0.9, ease: PREMIUM_EASE }}
                   className="font-classic italic font-medium text-invite-wine"
                   style={{
-                    fontSize: "clamp(2.025rem, 7.5vw, 3.075rem)",
+                    fontSize: "clamp(2.025rem, calc(7.5vw / var(--stage-scale, 1)), 3.075rem)",
                     lineHeight: 1.3,
                     letterSpacing: "0.005em",
                     textShadow: "0 1px 0 rgba(255,255,255,0.55), 0 0 20px rgba(200,161,101,0.16)",
@@ -377,9 +377,9 @@ export default function OpenInvitation({
 
           {/* mid ornament, echoing the letterhead rule */}
           <div className="flex items-center gap-2.5 text-invite-gold/80">
-            <span className="h-px w-10 bg-current opacity-60 sm:w-14" />
+            <span className="h-px w-14 bg-current opacity-60" />
             <span className="h-1 w-1 rotate-45 bg-invite-rose/70" />
-            <span className="h-px w-10 bg-current opacity-60 sm:w-14" />
+            <span className="h-px w-14 bg-current opacity-60" />
           </div>
 
           <div className="min-h-[2%] flex-1" />
@@ -433,10 +433,11 @@ export default function OpenInvitation({
                       className="mt-[4%] max-w-full self-center rounded-full font-classic font-medium uppercase"
                       style={{
                         letterSpacing: "0.12em",
-                        fontSize: "clamp(0.72rem, 2.3vw, 0.92rem)",
-                        padding: "clamp(0.5rem, 1.8vw, 0.75rem) clamp(1rem, 4.5vw, 2.2rem)",
+                        fontSize: "clamp(0.72rem, calc(2.3vw / var(--stage-scale, 1)), 0.92rem)",
+                        padding:
+                          "clamp(0.5rem, calc(1.8vw / var(--stage-scale, 1)), 0.75rem) clamp(1rem, calc(4.5vw / var(--stage-scale, 1)), 2.2rem)",
                         minHeight: "48px",
-                        minWidth: "clamp(2.75rem, 11vw, 3rem)",
+                        minWidth: "clamp(2.75rem, calc(11vw / var(--stage-scale, 1)), 3rem)",
                         touchAction: "manipulation",
                         color: "#3a1608",
                         backgroundImage:
@@ -470,7 +471,10 @@ function DetailRow({ icon, label, value }: { icon: ReactNode; label: string; val
     <div className="flex w-full max-w-full items-center gap-[4%]">
       <span
         className="flex shrink-0 items-center justify-center text-invite-gold/85"
-        style={{ width: "clamp(1.07rem, 3.02vw, 1.45rem)", height: "clamp(1.07rem, 3.02vw, 1.45rem)" }}
+        style={{
+          width: "clamp(1.07rem, calc(3.02vw / var(--stage-scale, 1)), 1.45rem)",
+          height: "clamp(1.07rem, calc(3.02vw / var(--stage-scale, 1)), 1.45rem)",
+        }}
         aria-hidden
       >
         {icon}
@@ -479,7 +483,7 @@ function DetailRow({ icon, label, value }: { icon: ReactNode; label: string; val
         className="shrink-0 whitespace-nowrap text-left font-medium uppercase italic"
         style={{
           letterSpacing: "0.18em",
-          fontSize: "clamp(0.78rem, 2.39vw, 1.04rem)",
+          fontSize: "clamp(0.78rem, calc(2.39vw / var(--stage-scale, 1)), 1.04rem)",
         }}
       >
         {label}
@@ -503,7 +507,7 @@ function DetailRow({ icon, label, value }: { icon: ReactNode; label: string; val
           // un-wrappable value would silently lose its tail on narrow phones
           className="min-w-0 shrink text-right font-medium break-words"
           style={{
-            fontSize: "clamp(0.74rem, 2.2vw, 0.98rem)",
+            fontSize: "clamp(0.74rem, calc(2.2vw / var(--stage-scale, 1)), 0.98rem)",
           }}
         >
           {value}

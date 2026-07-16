@@ -63,6 +63,30 @@ body {
   height: 100dvh;
 }
 
+/* ---------- Design stage (fixed-width desktop-style layout, scaled to fit) ---------- */
+
+/* Everything in the app renders inside this box at a fixed 600px logical
+   width, matching the desktop layout unconditionally. `--stage-scale` /
+   `--stage-width` (set by the beforeInteractive script in layout.tsx, from
+   the real `window.innerWidth`) shrink it to fit real viewports narrower
+   than that — `transform: scale()` on this element only, never the viewport
+   meta tag. Defaults (scale 1, width 100%) are a no-op, so before the script
+   runs (or on a real >=600px viewport) this box behaves like a plain div. */
+.design-stage {
+  width: var(--stage-width, 100%);
+  height: calc(100dvh / var(--stage-scale, 1));
+  transform: scale(var(--stage-scale, 1));
+  transform-origin: top left;
+}
+
+/* Stand-in for `h-dvh` inside the design stage: sized so that after the
+   stage's own scale transform is applied, it visually fills exactly 100dvh —
+   plain `h-dvh` would be shrunk twice (real dvh is unaffected by an
+   ancestor's transform, then the transform shrinks it again). */
+.h-stage {
+  height: calc(100dvh / var(--stage-scale, 1));
+}
+
 body {
   font-family: var(--font-body), sans-serif;
   /* keeps content clear of the iOS notch / home indicator; resolves to 0 on
@@ -275,8 +299,15 @@ body {
 
 /* ---------- Cursor-reactive glow ---------- */
 
+/* --glow-x/--glow-y (set in real device px by BackgroundAtmosphere) and the
+   50vw/30vh fallback both need the same /--stage-scale compensation as any
+   other stage-internal length — see .h-stage above. */
 .cursor-glow {
-  transform: translate3d(var(--glow-x, 50vw), var(--glow-y, 30vh), 0);
+  transform: translate3d(
+    var(--glow-x, calc(50vw / var(--stage-scale, 1))),
+    var(--glow-y, calc(30vh / var(--stage-scale, 1))),
+    0
+  );
   will-change: transform;
 }
 

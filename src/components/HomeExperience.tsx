@@ -71,19 +71,8 @@ export default function HomeExperience({
     requestAnimationFrame(fadeStep);
   }
 
-  // play() can still be rejected on mobile even from inside a genuine click
-  // handler (a slow network stalling the initial buffer, a browser quirk,
-  // etc.) — with nothing watching for that, the song would then just never
-  // play for the rest of the visit. Retries once on the next tap/keypress,
-  // which is still a valid user gesture the browser will honor.
   function startSongPlayback(audio: HTMLAudioElement) {
-    audio.play().catch(() => {
-      function retry() {
-        void audio.play().catch(() => {});
-      }
-      window.addEventListener("pointerdown", retry, { once: true });
-      window.addEventListener("keydown", retry, { once: true });
-    });
+    void audio.play().catch(() => {});
   }
 
   // Fades the song out and pauses it, resolving only once that's actually
@@ -137,11 +126,16 @@ export default function HomeExperience({
         >
           <Hero
             onBegin={() => {
-              // Must run synchronously, first, inside this click handler —
-              // iOS Safari only counts audio unlocking as user-initiated
-              // while still inside the original gesture's call stack.
-              unlockAudio();
+              // Order matters: playSong() must be the very first media call
+              // in this gesture's call stack. unlockAudio() also touches
+              // media (resumes the AudioContext, plays+pauses the fail
+              // sound to prime it) — running it first left the fail element
+              // mid-play when songAudio.play() fired a tick later, which is
+              // enough for mobile WebKit to refuse the song's own play()
+              // even though it's technically still inside the gesture.
+              // Starting the song first sidesteps that entirely.
               playSong();
+              unlockAudio();
               setPhase("sentence1");
             }}
           />
@@ -158,7 +152,7 @@ export default function HomeExperience({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
-          className="flex h-dvh items-center justify-center overflow-hidden px-6"
+          className="flex h-stage items-center justify-center overflow-hidden px-6"
         >
           <EnvelopeReveal onSongStop={stopSong} />
         </motion.div>
@@ -174,9 +168,9 @@ function Sentence({ text }: { text: string }) {
       animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
       exit={{ opacity: 0, y: -18, filter: "blur(18px)" }}
       transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
-      className="flex h-dvh items-center justify-center overflow-hidden px-6"
+      className="flex h-stage items-center justify-center overflow-hidden px-6"
     >
-      <p className="max-w-4xl text-balance text-center font-display font-light italic leading-[1.22] tracking-[-0.02em] text-transparent bg-clip-text bg-gradient-to-b from-[#FFF8F5] via-[#FFE7DF] to-[#F7B9AF] text-shadow-soft pr-[0.03em] text-[2.8rem] sm:text-[3.2rem] lg:text-[4.2rem] xl:text-[4.8rem]">
+      <p className="max-w-4xl text-balance text-center font-display font-light italic leading-[1.22] tracking-[-0.02em] text-transparent bg-clip-text bg-gradient-to-b from-[#FFF8F5] via-[#FFE7DF] to-[#F7B9AF] text-shadow-soft pr-[0.03em] text-[3.2rem] lg:text-[4.2rem] xl:text-[4.8rem]">
         {text}
       </p>
     </motion.div>

@@ -53,32 +53,57 @@ function pickTarget(from: { x: number; y: number }, size: Rect, minDist: number)
 // items split the row exactly 50/50 every time, regardless of content.
 const BUTTON_CLASS =
   "flex min-w-0 flex-1 items-center justify-center whitespace-nowrap rounded-full font-classic font-medium uppercase disabled:cursor-default";
-const BUTTON_STYLE = {
-  letterSpacing: "0.12em",
-  fontSize: "clamp(0.78rem, 2.5vw, 1rem)",
-  // horizontal padding floor lowered from 1.3rem so narrow phones (iPhone
-  // SE, etc.) aren't forced past their available width — on wider screens
-  // 4.5vw clears this floor well before the 2.1rem ceiling, so nothing
-  // changes there
-  padding: "clamp(0.55rem, 2vw, 0.85rem) clamp(0.85rem, 4.5vw, 2.1rem)",
-  // guarantees a touch target on small screens without changing the visual
-  // size anywhere the clamp() above already exceeds it. Floored at 44px
-  // (Apple/Google's own minimum) instead of a flat 48px so two buttons plus
-  // their gap can still fit inside a ~320px-wide card without overflowing —
-  // on anything wider than ~436px viewport this still resolves to 48px,
-  // identical to before.
-  minHeight: "48px",
-  // Was a flat clamp(2.75rem, 11vw, 3rem) — far narrower than either
-  // label's own text. Combined with the row's min-w-0/flex-1 (which permits
-  // shrinking below content width) and this button's overflow-hidden (needed
-  // to clip the shimmer-sweep sweep), the row could squeeze a button below
-  // its text's natural width on narrow phones, silently clipping the first
-  // character. max-content makes the label's own intrinsic width the real
-  // floor, so the button can still grow via flex-1 but never shrinks past
-  // what its text needs.
-  minWidth: "max-content",
-  touchAction: "manipulation",
-} as const;
+
+// The YES button and the NO placeholder live inside `.design-stage`, whose
+// own transform visually shrinks everything under it by `--stage-scale` —
+// so a plain fixed length (px/rem/em) there already ends up the right size
+// for free, while a `vw` term needs `/ var(--stage-scale)` first to cancel
+// that shrink out (`vw` always resolves against the real viewport,
+// ignoring ancestor transforms — see the .h-stage comment in globals.css).
+// The real, clickable NO button portals straight to `document.body` (so its
+// dodge can roam the full viewport, unclipped by the invitation card) — it
+// sits outside the transformed stage entirely, so it's the other way
+// around: its `vw` terms are already correct as real viewport units, but
+// its fixed lengths need an explicit `* var(--stage-scale)` to shrink in
+// step with everything else (this is provably the same visual result as
+// the stage-internal version — scaling distributes through `clamp()`).
+function buttonStyle(vw: (n: number) => string, px: (value: string) => string) {
+  return {
+    letterSpacing: "0.12em",
+    fontSize: `clamp(${px("0.78rem")}, ${vw(2.5)}, ${px("1rem")})`,
+    // horizontal padding floor lowered from 1.3rem so narrow phones (iPhone
+    // SE, etc.) aren't forced past their available width — on wider screens
+    // 4.5vw clears this floor well before the 2.1rem ceiling, so nothing
+    // changes there
+    padding: `clamp(${px("0.55rem")}, ${vw(2)}, ${px("0.85rem")}) clamp(${px("0.85rem")}, ${vw(4.5)}, ${px("2.1rem")})`,
+    // guarantees a touch target on small screens without changing the visual
+    // size anywhere the clamp() above already exceeds it. Floored at 44px
+    // (Apple/Google's own minimum) instead of a flat 48px so two buttons plus
+    // their gap can still fit inside a ~320px-wide card without overflowing —
+    // on anything wider than ~436px viewport this still resolves to 48px,
+    // identical to before.
+    minHeight: px("48px"),
+    // Was a flat clamp(2.75rem, 11vw, 3rem) — far narrower than either
+    // label's own text. Combined with the row's min-w-0/flex-1 (which permits
+    // shrinking below content width) and this button's overflow-hidden (needed
+    // to clip the shimmer-sweep sweep), the row could squeeze a button below
+    // its text's natural width on narrow phones, silently clipping the first
+    // character. max-content makes the label's own intrinsic width the real
+    // floor, so the button can still grow via flex-1 but never shrinks past
+    // what its text needs.
+    minWidth: "max-content",
+    touchAction: "manipulation",
+  } as const;
+}
+
+const STAGE_BUTTON_STYLE = buttonStyle(
+  (n) => `calc(${n}vw / var(--stage-scale, 1))`,
+  (value) => value
+);
+const PORTAL_BUTTON_STYLE = buttonStyle(
+  (n) => `${n}vw`,
+  (value) => `calc(${value} * var(--stage-scale, 1))`
+);
 
 export default function YesNoButtons({
   locked,
@@ -326,7 +351,7 @@ export default function YesNoButtons({
   }, [folding, opacityMV, scaleMV]);
 
   return (
-    <div className="relative flex w-full max-w-[88%] items-center justify-center gap-[8%] sm:gap-[16%]">
+    <div className="relative flex w-full max-w-[88%] items-center justify-center gap-[16%]">
       <motion.button
         type="button"
         disabled={locked}
@@ -334,7 +359,7 @@ export default function YesNoButtons({
         whileTap={{ scale: 0.94 }}
         className={`relative overflow-hidden ${BUTTON_CLASS}`}
         style={{
-          ...BUTTON_STYLE,
+          ...STAGE_BUTTON_STYLE,
           color: "#3a1608",
           backgroundImage: "linear-gradient(150deg, #f6dfae 0%, #dcb676 45%, #c8a165 100%)",
           boxShadow:
@@ -354,7 +379,7 @@ export default function YesNoButtons({
         aria-hidden
         tabIndex={-1}
         className={`${BUTTON_CLASS} pointer-events-none opacity-0`}
-        style={BUTTON_STYLE}
+        style={STAGE_BUTTON_STYLE}
       >
         {noText}
       </button>
@@ -370,7 +395,7 @@ export default function YesNoButtons({
             onPointerDown={handleNoPointerDown}
             className={`fixed z-[75] overflow-hidden ${BUTTON_CLASS}`}
             style={{
-              ...BUTTON_STYLE,
+              ...PORTAL_BUTTON_STYLE,
               width: widthMV,
               height: heightMV,
               left: leftMV,

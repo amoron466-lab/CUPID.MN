@@ -25,7 +25,7 @@ const item: Variants = {
 
 export default function Hero({ onBegin }: { onBegin?: () => void }) {
   return (
-    <section className="relative flex h-dvh flex-col items-center justify-center overflow-hidden px-6 pt-32 pb-20 sm:px-10 sm:pt-40 sm:pb-24">
+    <section className="relative flex h-stage flex-col items-center justify-center overflow-hidden px-10 pt-40 pb-24">
       <motion.div
         variants={container}
         initial="hidden"
@@ -35,7 +35,7 @@ export default function Hero({ onBegin }: { onBegin?: () => void }) {
         {/* focal illustration — reserved space for future interaction */}
         <motion.div
           variants={item}
-          className="relative mt-12 flex h-[440px] w-full max-w-2xl items-center justify-center sm:mt-14 sm:h-[560px]"
+          className="relative mt-14 flex h-[560px] w-full max-w-2xl items-center justify-center"
         >
           {/* glow beneath envelope, offset slightly off-center to avoid symmetry */}
           <div
@@ -81,7 +81,7 @@ export default function Hero({ onBegin }: { onBegin?: () => void }) {
         </motion.div>
 
         {/* continue action */}
-        <motion.div variants={item} className="mt-11 sm:mt-[3.25rem]">
+        <motion.div variants={item} className="mt-[3.25rem]">
           {/* ambient glow beneath the button, blooms softly on hover */}
           <div className="group/wrap relative inline-block">
             <div

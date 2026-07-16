@@ -13,15 +13,28 @@ export default function BackgroundAtmosphere() {
     if (prefersReduced || !canHover || !glowRef.current) return;
 
     const el = glowRef.current;
-    let targetX = window.innerWidth / 2;
-    let targetY = window.innerHeight * 0.3;
+    // This element lives inside `.design-stage`, so its own `translate3d`
+    // (see `.cursor-glow` in globals.css) is scaled down again by the
+    // stage's transform. e.clientX/clientY are real (already-scaled) device
+    // px, so they're divided by the current stage scale before being written
+    // as the translate offset — otherwise the glow would trail behind the
+    // real cursor position on a scaled-down (narrow) viewport.
+    function stageScale() {
+      const raw = getComputedStyle(document.documentElement).getPropertyValue("--stage-scale");
+      const n = parseFloat(raw);
+      return n > 0 ? n : 1;
+    }
+
+    let targetX = window.innerWidth / 2 / stageScale();
+    let targetY = (window.innerHeight * 0.3) / stageScale();
     let x = targetX;
     let y = targetY;
     let raf = 0;
 
     const onMove = (e: PointerEvent) => {
-      targetX = e.clientX;
-      targetY = e.clientY;
+      const scale = stageScale();
+      targetX = e.clientX / scale;
+      targetY = e.clientY / scale;
     };
 
     const tick = () => {
@@ -71,14 +84,20 @@ export default function BackgroundAtmosphere() {
         }}
       />
 
-      {/* key light — soft spotlight above hero, tighter falloff for realism */}
+      {/* key light — soft spotlight above hero, tighter falloff for realism.
+          vh-based sizes are wrapped in calc(.../var(--stage-scale,1)) — see
+          the .h-stage comment in globals.css — so they render at the same
+          real on-screen size the transform-scaled design stage would
+          otherwise shrink twice. */}
       <div
-        className="cursor-glow absolute h-[46vh] w-[46vh] rounded-full opacity-80 animate-drift-a will-change-transform"
+        className="cursor-glow absolute rounded-full opacity-80 animate-drift-a will-change-transform"
         style={{
           left: 0,
           top: 0,
-          marginLeft: "-23vh",
-          marginTop: "-23vh",
+          height: "calc(46vh / var(--stage-scale, 1))",
+          width: "calc(46vh / var(--stage-scale, 1))",
+          marginLeft: "calc(-23vh / var(--stage-scale, 1))",
+          marginTop: "calc(-23vh / var(--stage-scale, 1))",
           background:
             "radial-gradient(circle, rgba(217,138,134,0.24) 0%, rgba(217,138,134,0.09) 38%, rgba(217,138,134,0.02) 62%, rgba(217,138,134,0) 72%)",
           filter: "blur(22px)",
@@ -88,12 +107,14 @@ export default function BackgroundAtmosphere() {
       {/* tight hot core inside the key light — a small sharper highlight so the
           glow reads as a light source and not just a blurred circle */}
       <div
-        className="cursor-glow absolute h-[10vh] w-[10vh] rounded-full opacity-70 will-change-transform"
+        className="cursor-glow absolute rounded-full opacity-70 will-change-transform"
         style={{
           left: 0,
           top: 0,
-          marginLeft: "-5vh",
-          marginTop: "-5vh",
+          height: "calc(10vh / var(--stage-scale, 1))",
+          width: "calc(10vh / var(--stage-scale, 1))",
+          marginLeft: "calc(-5vh / var(--stage-scale, 1))",
+          marginTop: "calc(-5vh / var(--stage-scale, 1))",
           background:
             "radial-gradient(circle, rgba(244,232,228,0.18) 0%, rgba(244,232,228,0) 75%)",
           filter: "blur(14px)",
@@ -102,8 +123,10 @@ export default function BackgroundAtmosphere() {
 
       {/* broad ambient wash behind the key light, wider + softer */}
       <div
-        className="absolute left-1/2 top-[-16%] h-[76vh] w-[76vh] -translate-x-1/2 rounded-full opacity-60 animate-drift-a will-change-transform"
+        className="absolute left-1/2 top-[-16%] -translate-x-1/2 rounded-full opacity-60 animate-drift-a will-change-transform"
         style={{
+          height: "calc(76vh / var(--stage-scale, 1))",
+          width: "calc(76vh / var(--stage-scale, 1))",
           background:
             "radial-gradient(circle, rgba(190,60,70,0.3) 0%, rgba(190,60,70,0.1) 48%, rgba(190,60,70,0) 66%)",
           filter: "blur(70px)",
@@ -112,8 +135,10 @@ export default function BackgroundAtmosphere() {
 
       {/* gold rim glow — lower-left, distant light source */}
       <div
-        className="absolute bottom-[-15%] left-[-10%] h-[55vh] w-[55vh] rounded-full opacity-55 animate-drift-b will-change-transform"
+        className="absolute bottom-[-15%] left-[-10%] rounded-full opacity-55 animate-drift-b will-change-transform"
         style={{
+          height: "calc(55vh / var(--stage-scale, 1))",
+          width: "calc(55vh / var(--stage-scale, 1))",
           background:
             "radial-gradient(circle, rgba(227,189,143,0.17) 0%, rgba(227,189,143,0.05) 46%, rgba(227,189,143,0) 68%)",
           filter: "blur(75px)",
@@ -122,8 +147,10 @@ export default function BackgroundAtmosphere() {
 
       {/* deep wine pool — lower-right, grounds the composition */}
       <div
-        className="absolute bottom-[-22%] right-[-14%] h-[62vh] w-[62vh] rounded-full animate-drift-c will-change-transform"
+        className="absolute bottom-[-22%] right-[-14%] rounded-full animate-drift-c will-change-transform"
         style={{
+          height: "calc(62vh / var(--stage-scale, 1))",
+          width: "calc(62vh / var(--stage-scale, 1))",
           background:
             "radial-gradient(circle, rgba(74,15,26,0.52) 0%, rgba(74,15,26,0.18) 44%, rgba(74,15,26,0) 70%)",
           filter: "blur(85px)",
@@ -132,8 +159,10 @@ export default function BackgroundAtmosphere() {
 
       {/* faint secondary rim, opposite corner, very subtle to avoid symmetry */}
       <div
-        className="absolute right-[6%] top-[8%] h-[30vh] w-[30vh] rounded-full opacity-40 animate-drift-b will-change-transform"
+        className="absolute right-[6%] top-[8%] rounded-full opacity-40 animate-drift-b will-change-transform"
         style={{
+          height: "calc(30vh / var(--stage-scale, 1))",
+          width: "calc(30vh / var(--stage-scale, 1))",
           background:
             "radial-gradient(circle, rgba(217,138,134,0.14) 0%, rgba(217,138,134,0) 72%)",
           filter: "blur(50px)",
@@ -143,8 +172,9 @@ export default function BackgroundAtmosphere() {
       {/* thin horizon reflection — a low, wide sliver of warmth near the base,
           suggests light bouncing off an unseen surface below the fold */}
       <div
-        className="absolute inset-x-0 bottom-0 h-[22vh] opacity-45"
+        className="absolute inset-x-0 bottom-0 opacity-45"
         style={{
+          height: "calc(22vh / var(--stage-scale, 1))",
           background:
             "linear-gradient(to top, rgba(217,138,134,0.06) 0%, rgba(217,138,134,0) 100%)",
         }}
